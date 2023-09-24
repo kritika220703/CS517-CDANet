@@ -1,4 +1,7 @@
 ## CDANET
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 This repository contains the Tensorflow implementation of our paper "CDANET: CHANNEL SPLIT DUAL ATTENTION BASED CNN FOR BRAIN TUMOR
 CLASSIFICATION IN MR IMAGES"
 
