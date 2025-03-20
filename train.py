@@ -20,7 +20,7 @@ lbl=[]
 img=np.zeros((3064,224,224))
 for i in range(1,3065):
     try:
-        path='/kaggle/input/brain-tumour/brainTumorDataPublic_1766/'
+        path='/content/drive/MyDrive/brain-tumour/brainTumorDataPublic_1766/'
         with h5py.File(path+str(i)+'.mat') as f:
           images = f['cjdata']
           resized = cv2.resize(images['image'][:,:], (224,224), interpolation = cv2.INTER_CUBIC )
@@ -31,7 +31,7 @@ for i in range(1,3065):
           lbl.append(int(images['label'][0]))
     except:
         try:
-          path='/kaggle/input/brain-tumour/brainTumorDataPublic_22993064/'
+          path='/content/drive/MyDrive/brain-tumour/brainTumorDataPublic_22993064/'
           with h5py.File(path+str(i)+'.mat') as f:
               images = f['cjdata']
               resized = cv2.resize(images['image'][:,:], (224,224), interpolation = cv2.INTER_CUBIC )
@@ -42,7 +42,7 @@ for i in range(1,3065):
               lbl.append(int(images['label'][0]))
         except:
             try:
-              path='/kaggle/input/brain-tumour/brainTumorDataPublic_15332298/'
+              path='/content/drive/MyDrive/brain-tumour/brainTumorDataPublic_15332298/'
               with h5py.File(path+str(i)+'.mat') as f:
                   images = f['cjdata']
                   resized = cv2.resize(images['image'][:,:], (224,224), interpolation = cv2.INTER_CUBIC )
@@ -52,7 +52,7 @@ for i in range(1,3065):
                   img[i-1]=x
                   lbl.append(int(images['label'][0]))
             except:
-              path='/kaggle/input/brain-tumour/brainTumorDataPublic_7671532/'
+              path='/content/drive/MyDrive/brain-tumour/brainTumorDataPublic_7671532/'
               with h5py.File(path+str(i)+'.mat') as f:
                   images = f['cjdata']
                   resized = cv2.resize(images['image'][:,:], (224,224), interpolation = cv2.INTER_CUBIC )
@@ -62,7 +62,7 @@ for i in range(1,3065):
                   img[i-1]=x
                   lbl.append(int(images['label'][0]))
 
-path='/kaggle/input/braintumour/cvind (2).mat'
+path='/content/drive/MyDrive/brain-tumour/cvind.mat'
 
 with h5py.File(path) as f:
       data=f['cvind']
@@ -254,7 +254,7 @@ def train(index):
     model.compile(optimizer=Adam(2e-4,decay=1e-3), 
                          loss='categorical_crossentropy', 
                          metrics=['accuracy'])
-    hist=model.fit_generator(train_data,epochs=50,verbose=1,steps_per_epoch=ln//4)
+    hist=model.fit(train_data,epochs=50,verbose=1,steps_per_epoch=ln//4)
     history_last[fold]=upd(history_last[fold],hist.history)
     del([train_data,trn_x,trn_y,trn,df])
     gc.collect()
