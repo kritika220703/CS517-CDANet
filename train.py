@@ -17,8 +17,9 @@ from tensorflow.keras.applications import DenseNet121
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 lbl=[]
-img=np.zeros((3064,224,224))
-for i in range(1,3065):
+num_of_imgs_we_want = 30
+img=np.zeros((num_of_imgs_we_want,224,224))
+for i in range(1,num_of_imgs_we_want+1):
     try:
         path='/content/drive/MyDrive/brain-tumour/brainTumorDataPublic_1766/'
         with h5py.File(path+str(i)+'.mat') as f:
@@ -30,37 +31,38 @@ for i in range(1,3065):
           img[i-1]=x
           lbl.append(int(images['label'][0]))
     except:
-        try:
-          path='/content/drive/MyDrive/brain-tumour/brainTumorDataPublic_22993064/'
-          with h5py.File(path+str(i)+'.mat') as f:
-              images = f['cjdata']
-              resized = cv2.resize(images['image'][:,:], (224,224), interpolation = cv2.INTER_CUBIC )
-              x=np.asarray(resized)
-              x=(x-np.min(x))/(np.max(x)-np.min(x))
-              x=x.reshape((1,224,224))
-              img[i-1]=x
-              lbl.append(int(images['label'][0]))
-        except:
-            try:
-              path='/content/drive/MyDrive/brain-tumour/brainTumorDataPublic_15332298/'
-              with h5py.File(path+str(i)+'.mat') as f:
-                  images = f['cjdata']
-                  resized = cv2.resize(images['image'][:,:], (224,224), interpolation = cv2.INTER_CUBIC )
-                  x=np.asarray(resized)
-                  x=(x-np.min(x))/(np.max(x)-np.min(x))
-                  x=x.reshape((1,224,224))
-                  img[i-1]=x
-                  lbl.append(int(images['label'][0]))
-            except:
-              path='/content/drive/MyDrive/brain-tumour/brainTumorDataPublic_7671532/'
-              with h5py.File(path+str(i)+'.mat') as f:
-                  images = f['cjdata']
-                  resized = cv2.resize(images['image'][:,:], (224,224), interpolation = cv2.INTER_CUBIC )
-                  x=np.asarray(resized)
-                  x=(x-np.min(x))/(np.max(x)-np.min(x))
-                  x=x.reshape((1,224,224))
-                  img[i-1]=x
-                  lbl.append(int(images['label'][0]))
+      pass
+        # try:
+        #   path='/content/drive/MyDrive/brain-tumour/brainTumorDataPublic_22993064/'
+        #   with h5py.File(path+str(i)+'.mat') as f:
+        #       images = f['cjdata']
+        #       resized = cv2.resize(images['image'][:,:], (224,224), interpolation = cv2.INTER_CUBIC )
+        #       x=np.asarray(resized)
+        #       x=(x-np.min(x))/(np.max(x)-np.min(x))
+        #       x=x.reshape((1,224,224))
+        #       img[i-1]=x
+        #       lbl.append(int(images['label'][0]))
+        # except:
+        #     try:
+        #       path='/content/drive/MyDrive/brain-tumour/brainTumorDataPublic_15332298/'
+        #       with h5py.File(path+str(i)+'.mat') as f:
+        #           images = f['cjdata']
+        #           resized = cv2.resize(images['image'][:,:], (224,224), interpolation = cv2.INTER_CUBIC )
+        #           x=np.asarray(resized)
+        #           x=(x-np.min(x))/(np.max(x)-np.min(x))
+        #           x=x.reshape((1,224,224))
+        #           img[i-1]=x
+        #           lbl.append(int(images['label'][0]))
+        #     except:
+        #       path='/content/drive/MyDrive/brain-tumour/brainTumorDataPublic_7671532/'
+        #       with h5py.File(path+str(i)+'.mat') as f:
+        #           images = f['cjdata']
+        #           resized = cv2.resize(images['image'][:,:], (224,224), interpolation = cv2.INTER_CUBIC )
+        #           x=np.asarray(resized)
+        #           x=(x-np.min(x))/(np.max(x)-np.min(x))
+        #           x=x.reshape((1,224,224))
+        #           img[i-1]=x
+        #           lbl.append(int(images['label'][0]))
 
 path='/content/drive/MyDrive/brain-tumour/cvind.mat'
 
@@ -92,7 +94,9 @@ def change(img):
 #get train and test splits
 def get_trn_tst(df,tst_fold):
   idx=np.asarray(df['fold'])
+
   y=np.asarray(df['label'])
+
   y-=1
   img=np.asarray(df['images'])
   img1=[]
@@ -183,7 +187,7 @@ class DataGenerator(tf.keras.utils.Sequence):
     self.on_epoch_end()
 
   def __len__(self):
-    return int(np.floor(self.labels.shape[0] / self.batch_size))
+    return int(np.ceil(self.labels.shape[0] / self.batch_size))
 
   def on_epoch_end(self):
     self.indexes = np.arange(self.labels.shape[0])
@@ -228,6 +232,14 @@ def upd(dk,data):
 def train(index): 
     df=np.load(path,allow_pickle=True)
     df=df.item()
+
+    # Prune to 2 images
+    df['images'] = df['images'][:num_of_imgs_we_want]
+    df['label'] = df['label'][:num_of_imgs_we_want]
+
+    # Optionally adjust 'fold' if needed
+    df['fold'] = df['fold'][:num_of_imgs_we_want]  # Ensure fold matches the new size if necessary
+    
     best_accuracy_last={}
     final_accuracy_last={}
     history_last={}
@@ -248,13 +260,13 @@ def train(index):
     trn_x,trn_y=unison_shuffled_copies(trn[0],trn[1])
     tst_x,tst_y=unison_shuffled_copies(tst[0],tst[1])
     model=load_model()
-    train_data = DataGenerator(trn_x,pd.get_dummies(trn_y), batch_size=4, augment=True)
+    train_data = DataGenerator(trn_x,pd.get_dummies(trn_y), batch_size=8, augment=True)
     ln=len(trn_y)
     start=time.time()
     model.compile(optimizer=Adam(2e-4,decay=1e-3), 
                          loss='categorical_crossentropy', 
                          metrics=['accuracy'])
-    hist=model.fit(train_data,epochs=50,verbose=1,steps_per_epoch=ln//4)
+    hist=model.fit(train_data,epochs=50,verbose=1,steps_per_epoch=4)
     history_last[fold]=upd(history_last[fold],hist.history)
     del([train_data,trn_x,trn_y,trn,df])
     gc.collect()
